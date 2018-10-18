@@ -1,0 +1,170 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: admin123
+ * Date: 2018/9/25
+ * Time: 9:28
+ */
+
+namespace LyPenguin\Support;
+
+use LyPenguin\Core\Exceptions\RuntimeException;
+
+class Str
+{
+    /**
+     * The cache of snake-cased words.
+     *
+     * @var array
+     */
+    protected static $snakeCache = [];
+
+    /**
+     * 方法的驼峰格式
+     * The cache of camel-cased words.
+     *
+     * @var array
+     */
+    protected static $camelCache = [];
+
+    /**
+     * 类的驼峰命格式
+     * The cache of studly-cased words.
+     *
+     * @var array
+     */
+    protected static $studlyCache = [];
+
+    /**
+     * 属性驼峰转化为方法的驼峰
+     * @param $value
+     * @return string
+     */
+    public static function camel($value)
+    {
+        if (isset(static::$camelCache[$value])) {
+            return static::$camelCache[$value];
+        }
+
+        return static::$camelCache[$value] = lcfirst(static::studly($value));
+    }
+
+    /**
+     * 属性驼峰转化为类的驼峰
+     * @param string $value
+     * @return string
+     */
+    public static function studly($value)
+    {
+        $key = $value;
+
+        if (isset(static::$studlyCache[$key])) {
+            return static::$studlyCache[$key];
+        }
+        //将每个字符的首字母转化成大写
+        $value = ucwords(str_replace(['-', '_'], ' ', $value));
+
+        return static::$studlyCache[$key] = str_replace(' ', '', $value);
+    }
+
+    /**
+     * 将驼峰的类名用转化成下划线分割的属性驼峰
+     * Convert a string to snake case.
+     *
+     * @param string $value
+     * @param string $delimiter
+     *
+     * @return string
+     */
+    public static function snake($value, $delimiter = '_')
+    {
+        $key = $value . $delimiter;
+        if (isset(static::$snakeCache[$key])) {
+            return static::$snakeCache[$key];
+        }
+
+        if (!ctype_lower($value)) {
+            $value = strtolower(preg_replace('/(.)(?=[A-Z])/', '$1' . $delimiter, $value));
+        }
+
+        return static::$snakeCache[$key] = $value;
+
+    }
+
+    /**
+     * @param int $length
+     * @return string
+     * @throws RuntimeException
+     */
+    public static function random($length = 16)
+    {
+        $string = '';
+        while (($len = strlen($string)) < $length) {
+            $size = $length - $len;
+            $bytes = static::randomBytes($size);
+            $string .= substr(str_replace(['/', '+', '='], '', base64_encode($bytes)), 0, $size);
+        }
+        return $string;
+    }
+
+    /**
+     * @param int $length
+     * @return string|void
+     * @throws RuntimeException
+     */
+    public static function randomBytes($length = 16)
+    {
+        if (function_exists('random_bytes')) {
+            $bytes = random_bytes($length);
+        } elseif (function_exists('openssl_random_pseudo_bytes')) {
+            $bytes = openssl_random_pseudo_bytes($length, $strong);
+            if ($bytes === false || $strong === false) {
+                throw new RuntimeException('Unable to generate random string.');
+            }
+        } else {
+            throw new RuntimeException('OpenSSL extension is required for PHP 5 users.');
+        }
+
+        return $bytes;
+    }
+
+    /**
+     * Generate a "random" alpha-numeric string.
+     *
+     * Should not be considered sufficient for cryptography, etc.
+     *
+     * @param int $length
+     *
+     * @return string
+     */
+    public static function quickRandom($length = 16)
+    {
+        $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+        return substr(str_shuffle(str_repeat($pool, $length)), 0, $length);
+    }
+
+    /**
+     * Convert the given string to upper-case.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    public static function upper($value)
+    {
+        return mb_strtoupper($value);
+    }
+
+    /**
+     * Convert the given string to title case.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    public static function title($value)
+    {
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+    }
+}
