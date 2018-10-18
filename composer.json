@@ -1,6 +1,7 @@
 {
     "name": "flashfeifei/penguin",
     "description": "企鹅号SDK",
+	"version":"1.0",
     "authors": [
         {
             "name": "FlashFeiFei",
